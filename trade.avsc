@@ -1,0 +1,34 @@
+{
+   "namespace": "default",
+   "name": "TradeReceived",
+   "type": "record",
+   "fields" : [
+     {
+       "name" : "symbol",
+       "type" : "string"
+     },
+     {
+       "name" : "price",
+       "type" : "float"
+     },
+     {
+       "name" : "quantity",
+       "type" : "float"
+     },
+     {
+       "name" : "buyer",
+       "type" : "string"
+     },
+     {
+       "name" : "seller",
+       "type" : "string"
+     },
+     {
+        "name": "time",
+        "type": {
+          "type": "long",
+          "logicalType": "timestamp-millis"
+        }
+     }
+   ]
+}
