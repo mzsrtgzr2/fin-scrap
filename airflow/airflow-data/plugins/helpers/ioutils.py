@@ -9,6 +9,18 @@ from datetime import datetime
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from contextlib import closing
 
+AWS_CONNECTION_ID = 'aws'
+
+s3 = S3Hook(aws_conn_id=AWS_CONNECTION_ID)
+
+
+def mkdir(path, exist_ok=False):
+    """creates recursively the directory for both local filesystem an S3"""
+    # no need to create dirs on s3 ahead
+    if _is_s3path(path):
+        return
+    return os.makedirs(path, exist_ok=exist_ok)
+
 
 def s3_upload_file(s3_conn_id: str, s3_bucket:str, s3_key:str, filename: str):
     with closing(S3Hook(s3_conn_id=s3_conn_id)) as s3:
@@ -37,18 +49,36 @@ def write_parquet_bytes(stream: Iterable[Dict])->BytesIO:
     pq.write_table(stream, writer)
     return bytes(writer.getvalue())
 
+def split_s3_path(s3_path):
+    path_parts=s3_path.replace('s3://','').split('/')
+    bucket=path_parts.pop(0)
+    key='/'.join(path_parts)
+    return bucket, key
 
-def is_s3_key_exists(aws_conn_id: str, s3_bucket:str, key: str)->bool:
-    s3 = S3Hook(aws_conn_id=aws_conn_id)
-    return s3.check_for_key(key, bucket_name=s3_bucket)
+def _is_s3path(path):
+    return path.lower().startswith('s3://')
 
-def read_s3_json(aws_conn_id: str, s3_bucket:str, key: str)->Dict:
-    s3 = S3Hook(aws_conn_id=aws_conn_id)
-    return json.loads(s3.read_key(key, bucket_name=s3_bucket))
+def is_file_exists(fname):
+    """returns True if file exists, false otherwise"""
+    if _is_s3path(fname):
+        bucket, key = split_s3_path(fname)
+        return s3.check_for_key(key, bucket_name=bucket)
+    return os.path.isfile(fname)
 
-def write_s3_json(aws_conn_id: str, s3_bucket:str, key: str, data: dict)->Dict:
-    s3 = S3Hook(aws_conn_id=aws_conn_id)
-    s3.load_string(json.dumps(data), key, bucket_name=s3_bucket, replace=True)
+
+def json_load(fname: str)->Dict:
+    if _is_s3path(fname):
+        bucket, key = split_s3_path(fname)
+        return json.loads(s3.read_key(key, bucket_name=bucket))
+    with open(fname, 'r') as fp:
+        return json.load(fp)
+
+def json_dump(fname: str, data: dict)->Dict:
+    if _is_s3path(fname):
+        bucket, key = split_s3_path(fname)
+        s3.load_string(json.dumps(data), key, bucket_name=bucket, replace=True)
+    with open(fname, 'w') as fp:
+        return json.dump(data, fp)
 
 def lookup_latest_date_partition(
     aws_conn_id: str, s3_bucket:str, path: str

@@ -13,5 +13,6 @@ class UdacityPlugin(AirflowPlugin):
     ]
     helpers = [
         helpers.ioutils,
-        helpers.pyutils
+        helpers.pyutils,
+        helpers.config
     ]

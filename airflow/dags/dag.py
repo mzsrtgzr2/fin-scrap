@@ -1,10 +1,14 @@
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
-from operators import (BinanceTradesOperator,)
+from operators import (
+    BinanceTradesOperator,)
 
-AWS_CONNECTION_ID = 'aws_credentials'
-BINANCE_CONNECTION_ID = 'binance'
+from helpers.config import (
+    AWS_CONNECTION_ID,
+    BINANCE_CONNECTION_ID,
+)
+
 default_args = {
     'owner': 'moshe',
     'start_date': datetime(2019,1,1),
@@ -24,14 +28,29 @@ dag = DAG('trader',
 
 start_operator = DummyOperator(task_id='Begin_execution',  dag=dag)
 
-load_trades_to_s3 = BinanceTradesOperator(
-    task_id='binance_trades',
-    dag=dag,
-    symbol= 'BTCUSDT',
-    binance_connection_id=BINANCE_CONNECTION_ID,
-    aws_connection_id=AWS_CONNECTION_ID,
-    s3_bucket='pc360-test-bucket4',
+symbols = (
+    'ETH',
+    'SHIB',
+    'BUSD',
+    'DOGE',
+    'BNB',
+    'XRP',
+    'AVAX',
+    'SOL',
+    'TRX',
+    'LRC'
 )
+
+load_trades_to_s3 = tuple(
+    BinanceTradesOperator(
+        task_id=f'fetch_trades_{symbol}',
+        dag=dag,
+        symbol=f'{symbol}BTC',
+        binance_connection_id=BINANCE_CONNECTION_ID,
+        aws_connection_id=AWS_CONNECTION_ID,
+        s3_bucket='pc360-test-bucket4',
+    )
+    for symbol in symbols)
 
 end_operator = DummyOperator(task_id='Stop_execution',  dag=dag)
 

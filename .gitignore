@@ -1,3 +1,6 @@
 *__pycache__*
 *.DS_Store*
 *.log
+airflow/data/
+airflow/airflow-data/logs
+airflow-data/airflow-webserver.pid

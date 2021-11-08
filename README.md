@@ -16,3 +16,6 @@ parquet:
 arrow / vaex
 - https://towardsdatascience.com/apache-arrow-read-dataframe-with-zero-memory-69634092b1a 
 - https://towardsdatascience.com/process-dataset-with-200-million-rows-using-vaex-ad4839710d3b
+
+druid+airflow+spark+metabase
+- https://github.com/alexnu/coronavirus
