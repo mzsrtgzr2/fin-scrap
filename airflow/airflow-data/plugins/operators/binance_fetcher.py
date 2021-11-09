@@ -31,16 +31,19 @@ class BinanceTradesOperator(BaseOperator):
                  *args, **kwargs):
 
         super(BinanceTradesOperator, self).__init__(*args, **kwargs)
-        self.binance_api_key, self.binance_api_secret = get_connection_credentials(
-            binance_connection_id
-        )
+        
         self.symbol = symbol
         self.aws_connection_id = aws_connection_id
+        self.binance_connection_id = binance_connection_id
         self.s3_bucket = s3_bucket
 
     def execute(self, context):
-        aws_hook = AwsHook(aws_conn_id=self.aws_connection_id, client_type='s3')
-        credentials = aws_hook.get_credentials()
+        # aws_hook = AwsHook(aws_conn_id=self.aws_connection_id, client_type='s3')
+        # credentials = aws_hook.get_credentials()
+
+        self.binance_api_key, self.binance_api_secret = get_connection_credentials(
+            self.binance_connection_id
+        )
 
         # rootdir = f's3://{self.s3_bucket}'
         rootdir = '/data'

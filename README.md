@@ -19,3 +19,6 @@ arrow / vaex
 
 druid+airflow+spark+metabase
 - https://github.com/alexnu/coronavirus
+
+airflow
+- https://airflow.apache.org/docs/apache-airflow/2.2.1/docker-compose.yaml
