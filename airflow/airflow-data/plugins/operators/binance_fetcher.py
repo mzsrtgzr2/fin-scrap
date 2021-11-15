@@ -6,12 +6,15 @@ from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 from airflow.contrib.hooks.aws_hook import AwsHook
 from typing import *
+from binance.exceptions import BinanceAPIException
 from binance.client import Client
 from helpers import ioutils
 from helpers.pyutils import is_non_empty_iterator, batches
 from helpers.config import get_connection_credentials
 import tempfile
 import pandas as pd
+from tenacity import retry, wait_random, stop_after_attempt
+from ratelimit import limits
 
 
 # https://github.com/airflow-plugins/mssql_plugin/blob/master/operators/mssql_to_s3_operator.py
@@ -44,6 +47,8 @@ class BinanceTradesOperator(BaseOperator):
         self.binance_api_key, self.binance_api_secret = get_connection_credentials(
             self.binance_connection_id
         )
+        
+        binance_client = self._safe_get_client(self.binance_api_key, self.binance_api_secret)
 
         # rootdir = f's3://{self.s3_bucket}'
         rootdir = '/data'
@@ -63,7 +68,7 @@ class BinanceTradesOperator(BaseOperator):
             last_id = -1
 
         while True:
-            dt, stream = self._get_symbol_next_dt_trades(last_id)
+            dt, stream = self._get_symbol_next_dt_trades(binance_client, last_id)
 
             if not dt:
                 self.log.info('no trades found after trade %d', last_id)
@@ -97,24 +102,48 @@ class BinanceTradesOperator(BaseOperator):
             self.log.info('last id to update is %d', last_id)
             ioutils.json_dump(marker, {'last_id': int(last_id)})
 
-    def _get_symbol_trades(self, start_id=0)->Iterable[Dict]:
-        client = Client(self.binance_api_key, self.binance_api_secret)
+    
+    @retry(wait=wait_random(min=60, max=180), stop=stop_after_attempt(100))
+    @limits(calls=100, period=60)
+    def _safe_get_trades(self, binance_client: Client, *args, **kwargs):
+        try:
+            return binance_client.get_historical_trades(*args, **kwargs)
+        except BinanceAPIException as exp:
+            self.log.info('binance-exception while api %s', exp)
+            raise
+        except Exception as exp:
+            self.log.info('generic-exception while api %s', exp)
+            raise
 
+    @retry(wait=wait_random(min=60, max=180), stop=stop_after_attempt(100))
+    @limits(calls=100, period=60)
+    def _safe_get_client(self, *args, **kwargs):
+        try:
+            return Client(*args, **kwargs)
+        except BinanceAPIException as exp:
+            self.log.info('binance-exception while api %s', exp)
+            raise
+        except Exception as exp:
+            self.log.info('generic-exception while api %s', exp)
+            raise
+        
+
+    def _get_symbol_trades(self, binance_client: Client, start_id: int=0)->Iterable[Dict]:
         id = start_id
         
         while True:
-            self.log.info("getting trades from id %s", id)
-            trades = client.get_historical_trades(symbol=self.symbol, limit=1000, fromId=id)
+            self.log.debug("getting trades from id %s", id)
+            trades = self._safe_get_trades(binance_client, symbol=self.symbol, limit=1000, fromId=id)
             for trade in trades:
                 yield trade
                 id = max(id, trade['id'])
     
-    def _get_symbol_next_dt_trades(self, last_id: int)->Tuple[datetime, Iterable[Dict]]:
+    def _get_symbol_next_dt_trades(self, binance_client: Client, last_id: int)->Tuple[datetime, Iterable[Dict]]:
         def _it(start_id: int):
             dt = None
             counter = 0
             id = 0
-            for trade in self._get_symbol_trades(start_id+1):
+            for trade in self._get_symbol_trades(binance_client, start_id+1):
 
                 trade_dt = datetime.fromtimestamp(trade['time']/1000).date()
                 if not dt:

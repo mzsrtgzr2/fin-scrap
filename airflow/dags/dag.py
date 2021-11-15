@@ -30,15 +30,13 @@ start_operator = DummyOperator(task_id='Begin_execution',  dag=dag)
 
 symbols = (
     'ETH',
-    'SHIB',
-    'BUSD',
-    'DOGE',
-    'BNB',
-    'XRP',
-    'AVAX',
-    'SOL',
-    'TRX',
-    'LRC'
+    # 'DOGE',
+    # 'BNB',
+    # 'XRP',
+    # 'AVAX',
+    # 'SOL',
+    # 'TRX',
+    # 'LRC'
 )
 
 load_trades_to_s3 = tuple(
@@ -48,7 +46,7 @@ load_trades_to_s3 = tuple(
         symbol=f'{symbol}BTC',
         binance_connection_id=BINANCE_CONNECTION_ID,
         aws_connection_id=AWS_CONNECTION_ID,
-        s3_bucket='pc360-test-bucket4',
+        s3_bucket='dummy-bucket',
     )
     for symbol in symbols)
 

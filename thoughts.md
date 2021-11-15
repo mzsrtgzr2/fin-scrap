@@ -15,3 +15,19 @@ we don't need it really as a stream now.
 later, if we use some real time computations can add kafka to this plot. 
 
 trades read to an append-to csv file. than, we can move it to some dataware house.
+
+
+## nov-15-21
+
+### storage type
+- need to move to parquet instead of csv, the storage is very big.
+- need to move to partition by month to get bigger files.
+
+### history fetching
+fetcher direction - don't need really all the data of a stock, just for the last year will be enough. - start from today, and move backwards.
+
+how am i going to do it?
+- if we don't have marker - just fetch trades w/o fromId argument - we get the latest 1000 trades.
+- take the very first id in the response
+- fetch from (id-1001) and repeat
+- pour results to the appropriate parquet file (partition by month)

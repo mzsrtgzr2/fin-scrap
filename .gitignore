@@ -6,3 +6,4 @@ airflow/airflow-data/logs
 airflow/airflow-data/airflow-webserver.pid
 airflow/airflow-data/airflow-worker.pid
 airflow/airflow-data/airflow-webserver.pid
+airflow/airflow-data/logs/*
