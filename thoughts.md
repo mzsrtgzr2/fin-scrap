@@ -31,3 +31,24 @@ how am i going to do it?
 - take the very first id in the response
 - fetch from (id-1001) and repeat
 - pour results to the appropriate parquet file (partition by month)
+- if found the id already in the offload storage area - stop
+- because writing in parquet - 
+    - fetch trades
+    - every fetch finish, check if need to persist the trades from a month
+    - remove the trades from memory after persisting
+    - 
+
+aspects to consider
+- http timeout - check for timely span of response
+- start the job after failure - shoup pick up where it left
+- holes in the data - api don't have trades id? not possible
+- data exists already? - skip fetching the data from api
+
+
+rss fetching
+keep it in parquet
+fetch latest rss feeds
+need to check if already have this data
+wake up every 15 minutes i guess to see what else is new
+every item in the rss should have a timestamp
+need to keep a marker and update just the new news in persistence

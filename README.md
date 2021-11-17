@@ -22,3 +22,4 @@ druid+airflow+spark+metabase
 
 airflow
 - https://airflow.apache.org/docs/apache-airflow/2.2.1/docker-compose.yaml
+- https://github.com/maskfoder/potatopig/blob/main/dags/potatopig.py

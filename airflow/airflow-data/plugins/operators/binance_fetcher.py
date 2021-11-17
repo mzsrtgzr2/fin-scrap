@@ -2,6 +2,7 @@ import os
 import time
 from datetime import datetime
 import itertools
+from collections import OrderedDict
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 from airflow.contrib.hooks.aws_hook import AwsHook
@@ -20,7 +21,8 @@ from ratelimit import limits
 # https://github.com/airflow-plugins/mssql_plugin/blob/master/operators/mssql_to_s3_operator.py
 # https://dev.to/aws/reading-and-writing-data-across-different-aws-accounts-with-amazon-managed-workflows-for-apache-airflow-v2-x-3319
 
-    
+
+
 class BinanceTradesOperator(BaseOperator):
     version = 1
     ui_color = '#dd42f5'
@@ -61,46 +63,73 @@ class BinanceTradesOperator(BaseOperator):
         
         if ioutils.is_file_exists(marker):
             self.log.info('marker exists')
-            last_id = (ioutils.json_load(marker) or {}
-            ).get('last_id', -1)
+            earliest_id = (ioutils.json_load(marker) or {}
+            ).get('earliest_id', -1)
         else:
             self.log.info('marker not exist')
-            last_id = -1
+            earliest_id = None
 
+        dt_to_dfs = OrderedDict()
         while True:
-            dt, stream = self._get_symbol_next_dt_trades(binance_client, last_id)
-
-            if not dt:
-                self.log.info('no trades found after trade %d', last_id)
-                return
-            self.log.info('found trades stream for %s', dt)
-
-            dest_dir = os.path.join(
-                rootdir,
-                f'raw/trades/year={dt.year}/month={dt.month:02}/day={dt.day:02}/'
-            )
-            dest = os.path.join(
-                dest_dir,
-                f'trades__{self.version}__{self.symbol}__{dt.year}-{dt.month:02}-{dt.day:02}.csv'
+            trades = self._safe_get_trades(
+                binance_client,
+                symbol=self.symbol,
+                limit=1000,
+                fromId=(earliest_id-1001) if earliest_id else None
             )
 
-            ioutils.mkdir(dest_dir, exist_ok=True)
+            df = pd.DataFrame(trades)
+            df.index = pd.to_datetime(df.time, unit='ms')
 
-            self.log.info('writing to %s', dest)
-            df = pd.DataFrame(stream)
-            df.to_csv(
-                dest,
-                index=False,
-                mode='a',  # append
-                # storage_options={
-                #     'key': credentials.access_key,
-                #     'secret': credentials.secret_key
-                # },
+            for key, group in df.groupby([(df.index.year),(df.index.month), (df.index.day)]):
+
+                agg_df = dt_to_dfs.get(key, None)
+                if agg_df is None:
+                    dt_to_dfs[key] = group
+                else:
+                    dt_to_dfs[key] = pd.concat([agg_df, group])
+
+            keys = tuple(dt_to_dfs.keys())
+
+            for key in keys:
+                other_keys = set(keys) - {key}
+                if other_keys and any(other<key for other in other_keys):
+                    # persist this df
+                    year, month, day = key
+
+                    dest = os.path.join(
+                        rootdir,
+                        f'raw/trades/year={year}/month={month:02}/day={day:02}/',
+                        f'trades__{self.version}__{self.symbol}__{year}-{month:02}-{day:02}.parquet'
+                    )
+
+                    ioutils.mkdir(os.path.dirname(dest), exist_ok=True)
+
+                    self.log.info('writing to %s', dest)
+
+                    group = dt_to_dfs[key]
+                    # persist
+                    group.to_parquet(
+                        dest,
+                        index=False,
+                        # storage_options={
+                        #     'key': credentials.access_key,
+                        #     'secret': credentials.secret_key
+                        # },
+                    )
+
+                    earliest_id_in_group = group.id.min()
+                    ioutils.json_dump(marker, {'earliest_id': int(earliest_id_in_group)})
+
+                    # remove df from memory
+                    dt_to_dfs.pop(key)
+
+            earliest_id = df.id.min()
+            self.log.info(
+                'earliest id to update is %d, in mem keys: %s', 
+                earliest_id, tuple(dt_to_dfs.keys())
             )
-
-            last_id = df.id.max()
-            self.log.info('last id to update is %d', last_id)
-            ioutils.json_dump(marker, {'last_id': int(last_id)})
+            
 
     
     @retry(wait=wait_random(min=60, max=180), stop=stop_after_attempt(100))
@@ -126,46 +155,4 @@ class BinanceTradesOperator(BaseOperator):
         except Exception as exp:
             self.log.info('generic-exception while api %s', exp)
             raise
-        
 
-    def _get_symbol_trades(self, binance_client: Client, start_id: int=0)->Iterable[Dict]:
-        id = start_id
-        
-        while True:
-            self.log.debug("getting trades from id %s", id)
-            trades = self._safe_get_trades(binance_client, symbol=self.symbol, limit=1000, fromId=id)
-            for trade in trades:
-                yield trade
-                id = max(id, trade['id'])
-    
-    def _get_symbol_next_dt_trades(self, binance_client: Client, last_id: int)->Tuple[datetime, Iterable[Dict]]:
-        def _it(start_id: int):
-            dt = None
-            counter = 0
-            id = 0
-            for trade in self._get_symbol_trades(binance_client, start_id+1):
-
-                trade_dt = datetime.fromtimestamp(trade['time']/1000).date()
-                if not dt:
-                    dt = trade_dt
-
-                if trade_dt != dt:
-                    self.log.info('found the next date trade %s', trade)
-                    break
-
-                yield trade
-                counter+=1
-                id = max(id, trade['id'])
-            
-        data = _it(last_id)
-
-        first_trade = next(data, None)
-        if not first_trade:
-            self.log.info('failed to fetch trades')
-            return None, None
-        
-        # what dt are we looking at?
-        dt = datetime.fromtimestamp(first_trade['time']/1000).date()
-
-        stream = itertools.chain([first_trade], data)
-        return dt, stream
