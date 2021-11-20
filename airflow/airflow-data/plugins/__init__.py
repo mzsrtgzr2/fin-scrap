@@ -9,7 +9,8 @@ import helpers
 class UdacityPlugin(AirflowPlugin):
     name = "udacity_plugin"
     operators = [
-        operators.BinanceTradesOperator
+        operators.BinanceTradesOperator,
+        operators.RssOperator,
     ]
     helpers = [
         helpers.ioutils,

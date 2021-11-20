@@ -100,7 +100,7 @@ class BinanceTradesOperator(BaseOperator):
                     dest = os.path.join(
                         rootdir,
                         f'raw/trades/year={year}/month={month:02}/day={day:02}/',
-                        f'trades__{self.version}__{self.symbol}__{year}-{month:02}-{day:02}.parquet'
+                        f'trades__{self.version}__{self.symbol}__{year}-{month:02}-{day:02}__.parquet'
                     )
 
                     ioutils.mkdir(os.path.dirname(dest), exist_ok=True)

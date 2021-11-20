@@ -20,7 +20,7 @@ default_args = {
     'email_on_retry': False,
 }
 
-dag = DAG('trader',
+dag = DAG('trades_fetcher',
           default_args=default_args,
           description='',
           schedule_interval=None

@@ -23,3 +23,9 @@ druid+airflow+spark+metabase
 airflow
 - https://airflow.apache.org/docs/apache-airflow/2.2.1/docker-compose.yaml
 - https://github.com/maskfoder/potatopig/blob/main/dags/potatopig.py
+
+data sources
+- https://github.com/GoogleCloudPlatform/covid-19-open-data
+
+airflow+nifi
+- https://towardsdatascience.com/interconnecting-airflow-with-a-nifi-etl-pipeline-8abea0667b8a
