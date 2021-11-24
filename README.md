@@ -29,3 +29,27 @@ data sources
 
 airflow+nifi
 - https://towardsdatascience.com/interconnecting-airflow-with-a-nifi-etl-pipeline-8abea0667b8a
+
+nifi
+- https://www.nifi.rocks/apache-nifi-docker-compose-cluster/
+- https://www.youtube.com/c/StevenKoon/videos
+- https://community.cloudera.com/t5/Support-Questions/How-to-avoid-NiFi-GetFile-recoping-of-file-when/td-p/137076
+- GREAT SERIES: https://www.youtube.com/c/StevenKoon/videos
+- https://github.com/Nordstrom/nifi_terraform_generator
+- https://medium.com/tech-at-nordstrom/building-ci-cd-pipelines-with-apache-nifi-and-terraform-acedd653b356
+- www.nifi.rocks
+- https://www.nifi.rocks/expression-language-cheat-sheet/
+- https://community.cloudera.com/t5/Community-Articles/Create-Dynamic-Partitions-based-on-FlowFile-Content-Convert/ta-p/248367
+- http://www.olric.org/2019/09/get-started-with-nifi-partitioning-csv.html
+
+streamsets
+- https://blog.scottlogic.com/2017/02/27/streamsets-with-docker-an-example-hdfs-integration.html
+- https://github.com/zketley/streamsets-hdfs-demo
+- https://github.com/streamsets/streamsetsday/blob/e3b2f83149d6e09a191664bbbf32a9b56e253b82/streamsets-days/docker-compose.yml
+- https://vimeo.com/372989670/5a2336b7ee
+
+
+TODO:
+
+- https://www.youtube.com/watch?v=N2eDfU_rQ_U&ab_channel=Sivabalan
+- https://datahubproject.io/docs/metadata-ingestion/

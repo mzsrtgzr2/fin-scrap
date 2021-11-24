@@ -1,0 +1,15 @@
+version: '3'
+services:
+    streamsets-dc:
+        image: streamsets/datacollector:4.2.0
+        ports:
+            - "18630:18630"
+        environment:
+            - STREAMSETS_DEPLOYMENT_ID=16af42f1-34d2-4ede-83d7-6f49b705d12d:cdb709c6-4ba3-11ec-8927-9752f76551d0
+            - STREAMSETS_DEPLOYMENT_TOKEN=eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJzIjoiNjk5YWZlYWQ3ZjJhNmIwYTAxNjE4N2FmZGQwYTkzN2U5YzkwNDc0YjZjYzRhMjIyMjkxYzA4MDI3ZDNmYjhmZDE1Yjk1YTI2M2E5NGVjZjA5Yzg4YzI2MTdkYjExODU1NWFiMGQxNWQwMWIzOGYxYzBlMGI3YmU2MDE5NTM5MDgiLCJ2IjoxLCJpc3MiOiJldTAxIiwianRpIjoiNGMwNzViYWItYWYzMS00ODAzLTkxY2MtZmZlZmVhODdjNDg2IiwibyI6ImNkYjcwOWM2LTRiYTMtMTFlYy04OTI3LTk3NTJmNzY1NTFkMCJ9.
+            - STREAMSETS_DEPLOYMENT_SCH_URL=https://eu01.hub.streamsets.com
+volumes:
+    sdc-data:
+        driver: local
+    sdc-stagelibs:
+        driver: local
