@@ -41,6 +41,8 @@ nifi
 - https://www.nifi.rocks/expression-language-cheat-sheet/
 - https://community.cloudera.com/t5/Community-Articles/Create-Dynamic-Partitions-based-on-FlowFile-Content-Convert/ta-p/248367
 - http://www.olric.org/2019/09/get-started-with-nifi-partitioning-csv.html
+- https://github.com/skoonData/docker-compose/blob/main/nifi_cluster.yaml
+
 
 streamsets
 - https://blog.scottlogic.com/2017/02/27/streamsets-with-docker-an-example-hdfs-integration.html
