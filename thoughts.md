@@ -52,3 +52,21 @@ need to check if already have this data
 wake up every 15 minutes i guess to see what else is new
 every item in the rss should have a timestamp
 need to keep a marker and update just the new news in persistence
+
+
+
+
+
+
+fetcher in nifi is very nice
+it's doing the fetching in a scalable manner
+airflow will generate the files that nifi needs to pick up
+
+airflow generates "scrap" files with information about the scrap:
+- url
+- rate-group
+- destination path
+
+then, approach nifi api to start the process group for performing the operation.
+need to think about how to understand when the process group finished. 
+(https://towardsdatascience.com/interconnecting-airflow-with-a-nifi-etl-pipeline-8abea0667b8a)

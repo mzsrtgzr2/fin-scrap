@@ -58,8 +58,8 @@ x-airflow-common:
     AIRFLOW__API__AUTH_BACKEND: 'airflow.api.auth.backend.basic_auth'
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-python-binance==1.0.15 binance==0.3 pandas==1.3.4 s3fs ratelimit tenacity feedparser}
   volumes:
-    - ./dags:/opt/airflow/dags
-    - ./airflow-data/:/opt/airflow/
+    - ./airflow/dags:/opt/airflow/dags
+    - ./airflow/airflow-data/:/opt/airflow/
     - ./data:/data
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
@@ -68,6 +68,8 @@ x-airflow-common:
       condition: service_healthy
     postgres:
       condition: service_healthy
+  networks:
+    - my_persistent_network
 
 services:
   postgres:
@@ -83,6 +85,8 @@ services:
       interval: 5s
       retries: 5
     restart: always
+    networks:
+      - my_persistent_network
 
   redis:
     image: redis:latest
@@ -94,6 +98,8 @@ services:
       timeout: 30s
       retries: 50
     restart: always
+    networks:
+      - my_persistent_network
 
   airflow-webserver:
     <<: *airflow-common
@@ -237,18 +243,18 @@ services:
     volumes:
       - .:/sources
 
-  airflow-cli:
-    <<: *airflow-common
-    profiles:
-      - debug
-    environment:
-      <<: *airflow-common-env
-      CONNECTION_CHECK_MAX_COUNT: "0"
-    # Workaround for entrypoint issue. See: https://github.com/apache/airflow/issues/16252
-    command:
-      - bash
-      - -c
-      - airflow
+  # airflow-cli:
+  #   <<: *airflow-common
+  #   profiles:
+  #     - debug
+  #   environment:
+  #     <<: *airflow-common-env
+  #     CONNECTION_CHECK_MAX_COUNT: "0"
+  #   # Workaround for entrypoint issue. See: https://github.com/apache/airflow/issues/16252
+  #   command:
+  #     - bash
+  #     - -c
+  #     - airflow
 
   flower:
     <<: *airflow-common

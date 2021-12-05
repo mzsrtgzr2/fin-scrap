@@ -55,3 +55,9 @@ TODO:
 
 - https://www.youtube.com/watch?v=N2eDfU_rQ_U&ab_channel=Sivabalan
 - https://datahubproject.io/docs/metadata-ingestion/
+- https://www.singer.io/#what-it-is
+
+
+reading list:
+- https://www.amazon.com/Serious-Python-Black-Belt-Deployment-Scalability/dp/1593278780/ref=sr_1_4?keywords=apache+nifi+python&qid=1638351334&qsid=142-9243136-2068307&sr=8-4&sres=183921418X%2C1789955246%2C1800565666%2C1593278780%2CB08VQK3138%2C1108422098%2CB07J4521M3%2C1775093328%2C1492079391%2CB092BRVRNT%2C1449355730%2CB07MPV1S48%2C1491919531%2C1951791274%2CB084VHN9M6%2CB07H2WG93V&srpt=ABIS_BOOK
+
