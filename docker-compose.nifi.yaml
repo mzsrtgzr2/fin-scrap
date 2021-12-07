@@ -53,7 +53,7 @@ services:
         - nifi01_state:/opt/nifi/nifi-current/state
         - nifi01_logs:/opt/nifi/nifi-current/logs
         - nifi01_data:/opt/nifi/nifi-current/data
-        - ./airflow/data:/datalake
+        - ./data:/datalake
       networks:
         - my_persistent_network
 

@@ -73,12 +73,19 @@ def json_load(fname: str)->Dict:
     with open(fname, 'r') as fp:
         return json.load(fp)
 
-def json_dump(fname: str, data: dict)->Dict:
+def json_dump(fname: str, data: dict):
     if _is_s3path(fname):
         bucket, key = split_s3_path(fname)
         s3.load_string(json.dumps(data), key, bucket_name=bucket, replace=True)
     with open(fname, 'w') as fp:
-        return json.dump(data, fp)
+        json.dump(data, fp)
+
+def jsonl_dump(fname: str, data: Iterable[dict]):
+    with open(fname, 'w') as fp:
+        for it in data:
+            json.dump(it, fp)
+            fp.write('\n')
+
 
 def lookup_latest_date_partition(
     aws_conn_id: str, s3_bucket:str, path: str
